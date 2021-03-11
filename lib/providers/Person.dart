@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -16,8 +17,13 @@ class Persons with ChangeNotifier {
 
   List<Person> get persons => _persons;
 
-  void addPerson({String? first, String? last, int? age}) {
-    _persons.add(Person(id: 1, firstName: first, lastName: last, age: age));
+  void addPerson({required String? first, required String? last, required int? age}) {
+    _persons.add(Person(
+      id: Random().nextInt(1000000),
+      firstName: first,
+      lastName: last,
+      age: age,
+    ));
   }
 
   void removePerson({required int? id}) {
