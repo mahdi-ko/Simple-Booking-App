@@ -1,4 +1,4 @@
-import 'package:booking_app/add_person.dart';
+import 'package:booking_app/widgets/add_person.dart';
 import 'package:flutter/material.dart';
 
 void main() {
