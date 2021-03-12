@@ -1,15 +1,35 @@
+import 'package:booking_app/common/common_widgets.dart';
 import 'package:booking_app/providers/service.dart';
 import 'package:booking_app/widgets/add_person.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ServicesScreen extends StatelessWidget {
+class ServicesScreen extends StatefulWidget {
   static const route = '/services';
+
+  @override
+  _ServicesScreenState createState() => _ServicesScreenState();
+}
+
+class _ServicesScreenState extends State<ServicesScreen> {
+  Map<String, bool> chosenServices = {};
+  ThemeData? theme;
+  bool didRanDidChangeDep = false;
+
+  @override
+  void didChangeDependencies() {
+    if (!didRanDidChangeDep) {
+      chosenServices = ModalRoute.of(context)!.settings.arguments as Map<String, bool>;
+      theme = Theme.of(context);
+      didRanDidChangeDep = true;
+    }
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     final services = Provider.of<Services>(context, listen: false).services;
-    final Map<String, bool> chosenServices = {};
 
     return Scaffold(
       appBar: AppBar(
@@ -19,18 +39,33 @@ class ServicesScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: 25),
-          HeaderText('Choose Services', Theme.of(context)),
+          HeaderText('Choose Services', theme!),
           Expanded(
-            child: GridView(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 25),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 1,
-                childAspectRatio: 4,
-                mainAxisSpacing: 10,
-              ),
-              children: services.map((service) {
-                return ServiceWidget(service: service, chosenServices: chosenServices);
-              }).toList(),
+            child: Stack(
+              children: [
+                GridView(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 25),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 1,
+                    childAspectRatio: 4,
+                    mainAxisSpacing: 10,
+                  ),
+                  children: services.map((service) {
+                    return ServiceWidget(service: service, chosenServices: chosenServices);
+                  }).toList(),
+                ),
+                Positioned(
+                  bottom: 10,
+                  right: 20,
+                  child: ElevatedButton(
+                    style: orangeButtonStyle(theme),
+                    child: Text('Back'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -49,9 +84,11 @@ class ServiceWidget extends StatefulWidget {
 }
 
 class _ServiceWidgetState extends State<ServiceWidget> {
-  bool? isChecked = false;
+  bool? isChecked;
   @override
   Widget build(BuildContext context) {
+    isChecked = widget.chosenServices[widget.service.name] ?? false;
+
     return GestureDetector(
       onTap: () {
         _changeCheckVal(!isChecked!);
@@ -96,6 +133,5 @@ class _ServiceWidgetState extends State<ServiceWidget> {
     setState(() {
       isChecked = newVal;
     });
-    print(widget.chosenServices);
   }
 }

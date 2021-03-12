@@ -1,5 +1,7 @@
 import 'package:booking_app/common/common_methods.dart';
+import 'package:booking_app/common/common_widgets.dart';
 import 'package:booking_app/providers/Person.dart';
+import 'package:booking_app/widgets/services_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -13,10 +15,11 @@ class _AddPersonState extends State<AddPerson> {
   TextEditingController dateController = TextEditingController();
   TextEditingController timeController = TextEditingController();
   DateTime? chosenDate = DateTime.now();
-  TimeOfDay? chosenTime = TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 2);
+  TimeOfDay? chosenTime = TimeOfDay.now();
   String firstName = '';
   String lastName = '';
   int age = 0;
+  Map<String, bool> chosenServices = {};
   GlobalKey<FormState> _formKey = GlobalKey();
 
   final inputBorder = const OutlineInputBorder(
@@ -54,10 +57,17 @@ class _AddPersonState extends State<AddPerson> {
   Widget build(BuildContext context) {
     return Scaffold(
       persistentFooterButtons: <Widget>[
+        ElevatedButton(
+          child: Text('Services'),
+          onPressed: () {
+            removeFocus(context);
+            navigateToServices();
+          },
+          style: orangeButtonStyle(theme),
+        ),
+        SizedBox(width: 5),
         ElevatedButton.icon(
-          style: ButtonStyle(backgroundColor: MaterialStateProperty.resolveWith((value) {
-            return theme!.accentColor;
-          })),
+          style: orangeButtonStyle(theme),
           icon: const Icon(Icons.local_fire_department_rounded),
           label: const Text('Submit'),
           onPressed: submit,
@@ -170,8 +180,25 @@ class _AddPersonState extends State<AddPerson> {
 
   void submit() {
     if (!_formKey.currentState!.validate()) return;
+    final services = [];
+    chosenServices.forEach((serviceName, value) {
+      if (value) services.add(serviceName);
+    });
+    if (services.isEmpty) {
+      showSnackBar('Please choose at least 1 service');
+      return;
+    }
     _formKey.currentState!.save();
-    persons!.addPerson(first: firstName, last: lastName, age: age);
+
+    final servicesData = {'services': services, 'date': chosenDate, 'time': chosenTime};
+    persons!.addPerson(first: firstName, last: lastName, age: age, servicesData: servicesData);
+    showSnackBar('Booking successful', showIcon: true);
+    _formKey.currentState!.reset();
+    chosenServices = {};
+  }
+
+  void navigateToServices() {
+    Navigator.of(context).pushNamed(ServicesScreen.route, arguments: chosenServices);
   }
 
   Future<DateTime?> datePicker({required BuildContext? context}) async {
@@ -188,6 +215,22 @@ class _AddPersonState extends State<AddPerson> {
 
   Future<TimeOfDay?> timePicker({required BuildContext? context}) {
     return showTimePicker(context: context!, initialTime: TimeOfDay.now());
+  }
+
+  void showSnackBar(String text, {bool showIcon = false}) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: Duration(seconds: 2),
+        content: Row(
+          children: [
+            if (showIcon) Icon(Icons.domain_verification_sharp, color: Colors.white),
+            if (showIcon) SizedBox(width: 10),
+            Text(text),
+          ],
+        ),
+      ),
+    );
   }
 }
 

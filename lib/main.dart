@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           unselectedWidgetColor: Colors.white,
           primarySwatch: Colors.blue,
-          accentColor: Colors.orange[700],
+          accentColor: Colors.orange[800],
         ),
         home: AddPerson(),
         routes: {
