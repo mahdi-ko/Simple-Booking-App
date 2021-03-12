@@ -1,5 +1,7 @@
 import 'package:booking_app/providers/Person.dart';
+import 'package:booking_app/providers/service.dart';
 import 'package:booking_app/widgets/add_person.dart';
+import 'package:booking_app/widgets/services_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,19 +15,24 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<Persons>(
-          create: (_) {
-            return Persons();
-          },
+          create: (_) => Persons(),
+        ),
+        ChangeNotifierProvider<Services>(
+          create: (_) => Services(),
         )
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Booking App',
         theme: ThemeData(
+          unselectedWidgetColor: Colors.white,
           primarySwatch: Colors.blue,
           accentColor: Colors.orange[700],
         ),
         home: AddPerson(),
+        routes: {
+          ServicesScreen.route: (ctx) => ServicesScreen(),
+        },
       ),
     );
   }
