@@ -1,6 +1,5 @@
 import 'package:booking_app/common/common_widgets.dart';
 import 'package:booking_app/providers/service.dart';
-import 'package:booking_app/widgets/add_person.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -35,37 +34,31 @@ class _ServicesScreenState extends State<ServicesScreen> {
       appBar: AppBar(
         title: Text('Services'),
       ),
+      persistentFooterButtons: [
+        ElevatedButton(
+          style: orangeButtonStyle(theme),
+          child: Text('Back'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: 25),
           HeaderText('Choose Services', theme!),
           Expanded(
-            child: Stack(
-              children: [
-                GridView(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 25),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 1,
-                    childAspectRatio: 4,
-                    mainAxisSpacing: 10,
-                  ),
-                  children: services.map((service) {
-                    return ServiceWidget(service: service, chosenServices: chosenServices);
-                  }).toList(),
-                ),
-                Positioned(
-                  bottom: 10,
-                  right: 20,
-                  child: ElevatedButton(
-                    style: orangeButtonStyle(theme),
-                    child: Text('Back'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-              ],
+            child: GridView(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 25),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1,
+                childAspectRatio: 4,
+                mainAxisSpacing: 10,
+              ),
+              children: services.map((service) {
+                return ServiceWidget(service: service, chosenServices: chosenServices);
+              }).toList(),
             ),
           ),
         ],

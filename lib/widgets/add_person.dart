@@ -29,6 +29,8 @@ class _AddPersonState extends State<AddPerson> {
   ThemeData? theme;
   Persons? persons;
   bool didRanChangeDep = false;
+
+  bool isLoading = false;
   @override
   void dispose() {
     dateController.dispose();
@@ -70,7 +72,9 @@ class _AddPersonState extends State<AddPerson> {
           style: orangeButtonStyle(theme),
           icon: const Icon(Icons.local_fire_department_rounded),
           label: const Text('Submit'),
-          onPressed: submit,
+          onPressed: () {
+            if (!isLoading) submit();
+          },
         )
       ],
       appBar: AppBar(
@@ -80,109 +84,119 @@ class _AddPersonState extends State<AddPerson> {
         onTap: () {
           removeFocus(context);
         },
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  HeaderText('Personal Information', theme!),
-                  SizedBox(height: 20),
-                  TextFormField(
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: 'First Name',
-                      border: inputBorder,
+        child: Form(
+          key: _formKey,
+          child: isLoading
+              ? Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        HeaderText('Personal Information', theme!),
+                        SizedBox(height: 20),
+                        TextFormField(
+                          initialValue: firstName,
+                          textInputAction: TextInputAction.next,
+                          decoration: InputDecoration(
+                            labelText: 'First Name',
+                            border: inputBorder,
+                          ),
+                          validator: (value) {
+                            return validateName(value);
+                          },
+                          onSaved: (newValue) {
+                            firstName = newValue!.trim();
+                          },
+                        ),
+                        SizedBox(height: 20),
+                        TextFormField(
+                          initialValue: lastName,
+                          textInputAction: TextInputAction.next,
+                          decoration: InputDecoration(
+                            labelText: 'Last Name',
+                            border: inputBorder,
+                          ),
+                          validator: (value) {
+                            return validateName(value);
+                          },
+                          onSaved: (newValue) {
+                            lastName = newValue!.trim();
+                          },
+                        ),
+                        SizedBox(height: 20),
+                        TextFormField(
+                          initialValue: age == 0 ? '' : age.toString(),
+                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d?\d'))],
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Age',
+                            border: inputBorder,
+                          ),
+                          validator: (value) {
+                            if (double.tryParse(value!) == null) return 'please enter your age';
+                            if (double.parse(value) == 0) return 'you are 0 years old?';
+                            if (double.parse(value) < 13)
+                              return 'children can\'t book services sorry';
+                          },
+                          onSaved: (newValue) {
+                            age = int.parse(newValue!);
+                          },
+                        ),
+                        SizedBox(height: 40),
+                        HeaderText('Booking Information', theme!),
+                        SizedBox(height: 20),
+                        _DateOrTimeRow(
+                            text: 'Date',
+                            controller: dateController,
+                            onPressed: () async {
+                              removeFocus(context);
+                              final tmpHolder = await datePicker(context: context);
+                              if (tmpHolder != null) {
+                                chosenDate = tmpHolder;
+                                setState(() {
+                                  dateController.text = convertDate(chosenDate)!;
+                                });
+                              }
+                            },
+                            inputBorder: inputBorder),
+                        SizedBox(height: 20),
+                        _DateOrTimeRow(
+                          text: 'Time',
+                          controller: timeController,
+                          inputBorder: inputBorder,
+                          onPressed: () async {
+                            removeFocus(context);
+                            final tmpHolder = await timePicker(context: context);
+                            if (tmpHolder != null) {
+                              chosenTime = tmpHolder;
+                              setState(() {
+                                timeController.text = chosenTime!.format(context);
+                              });
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                    validator: (value) {
-                      return validateName(value);
-                    },
-                    onSaved: (newValue) {
-                      firstName = newValue!.trim();
-                    },
                   ),
-                  SizedBox(height: 20),
-                  TextFormField(
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: 'Last Name',
-                      border: inputBorder,
-                    ),
-                    validator: (value) {
-                      return validateName(value);
-                    },
-                    onSaved: (newValue) {
-                      lastName = newValue!.trim();
-                    },
-                  ),
-                  SizedBox(height: 20),
-                  TextFormField(
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d?\d'))],
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Age',
-                      border: inputBorder,
-                    ),
-                    validator: (value) {
-                      if (double.tryParse(value!) == null) return 'please enter your age';
-                      if (double.parse(value) == 0) return 'you are 0 years old?';
-                      if (double.parse(value) < 13) return 'children can\'t book services sorry';
-                    },
-                    onSaved: (newValue) {
-                      age = int.parse(newValue!);
-                    },
-                  ),
-                  SizedBox(height: 40),
-                  HeaderText('Booking Information', theme!),
-                  SizedBox(height: 20),
-                  _DateOrTimeRow(
-                      text: 'Date',
-                      controller: dateController,
-                      onPressed: () async {
-                        removeFocus(context);
-                        final tmpHolder = await datePicker(context: context);
-                        if (tmpHolder != null) {
-                          chosenDate = tmpHolder;
-                          setState(() {
-                            dateController.text = convertDate(chosenDate)!;
-                          });
-                        }
-                      },
-                      inputBorder: inputBorder),
-                  SizedBox(height: 20),
-                  _DateOrTimeRow(
-                    text: 'Time',
-                    controller: timeController,
-                    inputBorder: inputBorder,
-                    onPressed: () async {
-                      removeFocus(context);
-                      final tmpHolder = await timePicker(context: context);
-                      if (tmpHolder != null) {
-                        chosenTime = tmpHolder;
-                        setState(() {
-                          timeController.text = chosenTime!.format(context);
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
+                ),
         ),
       ),
     );
   }
 
-  void submit() {
-    if (!_formKey.currentState!.validate()) return;
+  void submit() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     final services = [];
     chosenServices.forEach((serviceName, value) {
-      if (value) services.add(serviceName);
+      if (value) {
+        services.add(serviceName);
+      }
     });
     if (services.isEmpty) {
       showSnackBar('Please choose at least 1 service');
@@ -191,10 +205,17 @@ class _AddPersonState extends State<AddPerson> {
     _formKey.currentState!.save();
 
     final servicesData = {'services': services, 'date': chosenDate, 'time': chosenTime};
-    persons!.addPerson(first: firstName, last: lastName, age: age, servicesData: servicesData);
-    showSnackBar('Booking successful', showIcon: true);
-    _formKey.currentState!.reset();
-    chosenServices = {};
+    changeIsLoading(true);
+    try {
+      await persons!
+          .addPerson(first: firstName, last: lastName, age: age, servicesData: servicesData);
+      showSnackBar('Booking successful', icon: Icons.domain_verification_sharp);
+      resetForm();
+    } catch (error) {
+      showSnackBar('Booking failed', icon: Icons.error_outline_outlined);
+    } finally {
+      changeIsLoading(false);
+    }
   }
 
   void navigateToServices() {
@@ -217,40 +238,34 @@ class _AddPersonState extends State<AddPerson> {
     return showTimePicker(context: context!, initialTime: TimeOfDay.now());
   }
 
-  void showSnackBar(String text, {bool showIcon = false}) {
+  void showSnackBar(String text, {IconData? icon}) {
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: Duration(seconds: 2),
         content: Row(
           children: [
-            if (showIcon) Icon(Icons.domain_verification_sharp, color: Colors.white),
-            if (showIcon) SizedBox(width: 10),
+            if (icon != null) Icon(icon, color: Colors.white),
+            if (icon != null) SizedBox(width: 10),
             Text(text),
           ],
         ),
       ),
     );
   }
-}
 
-class HeaderText extends StatelessWidget {
-  final String text;
-  final ThemeData theme;
-  const HeaderText(this.text, this.theme);
+  void resetForm() {
+    firstName = '';
+    lastName = '';
+    age = 0;
+    _formKey.currentState!.reset();
+    chosenServices = {};
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8.0),
-      child: Text(text,
-          style: theme.textTheme.headline5?.copyWith(shadows: [
-            Shadow(
-              color: Colors.grey.shade400,
-              offset: Offset(2, 1.5),
-            )
-          ])),
-    );
+  void changeIsLoading(bool value) {
+    setState(() {
+      isLoading = value;
+    });
   }
 }
 
