@@ -1,6 +1,9 @@
 import 'package:booking_app/common/common_methods.dart';
 import 'package:booking_app/common/common_widgets.dart';
-import 'package:booking_app/providers/Person.dart';
+import 'package:booking_app/providers/book_service.dart';
+import 'package:booking_app/providers/person.dart';
+import 'package:booking_app/providers/service.dart';
+import 'package:booking_app/widgets/booked_services_screen.dart';
 import 'package:booking_app/widgets/services_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,7 +22,7 @@ class _AddPersonState extends State<AddPerson> {
   String firstName = '';
   String lastName = '';
   int age = 0;
-  Map<String, bool> chosenServices = {};
+  Map<int, bool> chosenServices = {};
   GlobalKey<FormState> _formKey = GlobalKey();
 
   final inputBorder = const OutlineInputBorder(
@@ -60,14 +63,13 @@ class _AddPersonState extends State<AddPerson> {
     return Scaffold(
       persistentFooterButtons: <Widget>[
         ElevatedButton(
-          child: Text('Services'),
+          child: Text('Booked Services'),
           onPressed: () {
             removeFocus(context);
-            navigateToServices();
+            Navigator.of(context).pushNamed(BookedServicesScreen.route);
           },
           style: orangeButtonStyle(theme),
         ),
-        SizedBox(width: 5),
         ElevatedButton.icon(
           style: orangeButtonStyle(theme),
           icon: const Icon(Icons.local_fire_department_rounded),
@@ -179,6 +181,17 @@ class _AddPersonState extends State<AddPerson> {
                             }
                           },
                         ),
+                        SizedBox(height: 20),
+                        Container(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            child: Text('Choose Services'),
+                            onPressed: () {
+                              removeFocus(context);
+                              navigateToServices();
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -192,10 +205,12 @@ class _AddPersonState extends State<AddPerson> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    final services = [];
-    chosenServices.forEach((serviceName, value) {
+    final servProvider = Provider.of<Services>(context, listen: false);
+
+    final List<Service> services = [];
+    chosenServices.forEach((serviceId, value) {
       if (value) {
-        services.add(serviceName);
+        services.add(servProvider.getServiceBy(serviceId));
       }
     });
     if (services.isEmpty) {
@@ -204,11 +219,12 @@ class _AddPersonState extends State<AddPerson> {
     }
     _formKey.currentState!.save();
 
-    final servicesData = {'services': services, 'date': chosenDate, 'time': chosenTime};
+    final BookedService bookedService =
+        BookedService(date: chosenDate!, time: convertTime(chosenTime!), services: services);
     changeIsLoading(true);
     try {
       await persons!
-          .addPerson(first: firstName, last: lastName, age: age, servicesData: servicesData);
+          .addPerson(first: firstName, last: lastName, age: age, bookedService: bookedService);
       showSnackBar('Booking successful', icon: Icons.domain_verification_sharp);
       resetForm();
     } catch (error) {
