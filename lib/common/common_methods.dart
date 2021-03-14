@@ -19,7 +19,7 @@ void removeFocus(BuildContext context) {
   }
 }
 
-String timeToString(TimeOfDay time) {
+String convertTime(TimeOfDay time) {
   final t = time.toString();
   return t.substring(t.indexOf('(') + 1, t.indexOf(')'));
 }
