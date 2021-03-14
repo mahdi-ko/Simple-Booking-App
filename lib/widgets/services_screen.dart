@@ -12,14 +12,14 @@ class ServicesScreen extends StatefulWidget {
 }
 
 class _ServicesScreenState extends State<ServicesScreen> {
-  Map<String, bool> chosenServices = {};
+  Map<int, bool> chosenServices = {};
   ThemeData? theme;
   bool didRanDidChangeDep = false;
 
   @override
   void didChangeDependencies() {
     if (!didRanDidChangeDep) {
-      chosenServices = ModalRoute.of(context)!.settings.arguments as Map<String, bool>;
+      chosenServices = ModalRoute.of(context)!.settings.arguments as Map<int, bool>;
       theme = Theme.of(context);
       didRanDidChangeDep = true;
     }
@@ -69,8 +69,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
 
 class ServiceWidget extends StatefulWidget {
   final Service service;
-  final Map<String, bool> chosenServices;
-  const ServiceWidget({required this.service, required this.chosenServices});
+  final Map<int, bool> chosenServices;
+  final bool showCheckBox;
+  const ServiceWidget(
+      {required this.service, required this.chosenServices, this.showCheckBox = true});
 
   @override
   _ServiceWidgetState createState() => _ServiceWidgetState();
@@ -80,11 +82,11 @@ class _ServiceWidgetState extends State<ServiceWidget> {
   bool? isChecked;
   @override
   Widget build(BuildContext context) {
-    isChecked = widget.chosenServices[widget.service.name] ?? false;
+    isChecked = widget.chosenServices[widget.service.id] ?? false;
 
     return GestureDetector(
       onTap: () {
-        _changeCheckVal(!isChecked!);
+        if (widget.showCheckBox) _changeCheckVal(!isChecked!);
       },
       child: Stack(
         fit: StackFit.expand,
@@ -106,23 +108,25 @@ class _ServiceWidgetState extends State<ServiceWidget> {
               style: TextStyle(color: Colors.white, fontSize: 20),
             ),
           ),
-          Positioned(
-            right: 10,
-            top: 20,
-            child: Checkbox(
-              value: isChecked,
-              onChanged: (newVal) {
-                _changeCheckVal(newVal!);
-              },
-            ),
-          )
+          widget.showCheckBox
+              ? Positioned(
+                  right: 10,
+                  top: 20,
+                  child: Checkbox(
+                    value: isChecked,
+                    onChanged: (newVal) {
+                      _changeCheckVal(newVal!);
+                    },
+                  ),
+                )
+              : SizedBox.shrink(),
         ],
       ),
     );
   }
 
   void _changeCheckVal(bool newVal) {
-    widget.chosenServices[widget.service.name!] = newVal;
+    widget.chosenServices[widget.service.id!] = newVal;
     setState(() {
       isChecked = newVal;
     });
