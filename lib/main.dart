@@ -1,6 +1,7 @@
-import 'package:booking_app/providers/Person.dart';
+import 'package:booking_app/providers/person.dart';
 import 'package:booking_app/providers/service.dart';
 import 'package:booking_app/widgets/add_person.dart';
+import 'package:booking_app/widgets/booked_services_screen.dart';
 import 'package:booking_app/widgets/services_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
         home: AddPerson(),
         routes: {
           ServicesScreen.route: (ctx) => ServicesScreen(),
+          BookedServicesScreen.route: (ctx) => BookedServicesScreen(),
         },
       ),
     );
