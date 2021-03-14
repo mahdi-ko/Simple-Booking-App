@@ -18,4 +18,8 @@ class Services with ChangeNotifier {
   ];
 
   List<Service> get services => _services;
+
+  Service getServiceBy(int id) => _services.firstWhere((serv) {
+        return serv.id == id;
+      });
 }
