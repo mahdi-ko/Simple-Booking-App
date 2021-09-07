@@ -111,7 +111,7 @@ class _ServiceWidgetState extends State<ServiceWidget> {
           widget.showCheckBox
               ? Positioned(
                   right: 10,
-                  top: 20,
+                  top: 15,
                   child: Checkbox(
                     value: isChecked,
                     onChanged: (newVal) {
